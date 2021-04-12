@@ -29,3 +29,9 @@ gitlab-runner start
 ```
 
 Navigate to Gitlab CI/CD Settings and verify that runner is activated
+
+## Commands reference
+
+```bash
+docker build chachkies --build-arg SPRING_ACTIVE_PROFILE=default -t harbor-repo.vmware.com/build_service/chachkies -f chachkies/Dockerfile
+```

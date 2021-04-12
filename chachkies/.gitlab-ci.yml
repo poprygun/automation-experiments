@@ -1,7 +1,8 @@
-image: maven:latest
+services:
+  - docker:19.03.7-dind
 
 variables:
-  MAVEN_CLI_OPTS: "-s .m2/settings.xml --batch-mode"
+  MAVEN_CLI_OPTS: "--batch-mode"
   MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
 
 cache:
@@ -10,29 +11,53 @@ cache:
     - target/
 
 stages:
-  - build
+  - build jar
   - test
+  - build and push docker image
 
 before_script:
-  - echo "Start CI/CD"
+  # - source .${CI_COMMIT_REF_NAME}.env
+  - echo "End CI/CD"
 
 build:
-  stage: build
+  tags:
+    - "local"
+  image: maven:3.6.3-jdk-11-slim
+  stage: build jar
   script:
-    - mvn $MAVEN_CLI_OPTS package -DskipTests
+    - mvn $MAVEN_CLI_OPTS -f chachkies/pom.xml package -DskipTests
   artifacts:
     paths:
-      - target/*.jar
+      - chachkies/target/*.jar
     expire_in: 1 week
   only:
     - master
 
 test:
+  tags:
+    - "local"
+  image: maven:3.6.3-jdk-11-slim
   stage: test
   script:
-    - mvn $MAVEN_CLI_OPTS test
+    - mvn $MAVEN_CLI_OPTS -f chachkies/pom.xml test
   only:
     - master
 
+
+docker build:
+  tags:
+    - "local"
+  image: docker:19-dind
+  stage: build and push docker image
+  # before_script:
+    # - source .${CI_COMMIT_REF_NAME}.env
+  script:
+    - docker build chachkies --build-arg SPRING_ACTIVE_PROFILE=$SPRING_ACTIVE_PROFILE -t $DOCKER_REPO -f chachkies/Dockerfile
+    - docker login -u $DOCKER_USER -p $DOCKER_PASSWORD harbor-repo.vmware.com
+    - docker push $DOCKER_REPO
+
 after_script:
   - echo "End CI/CD"
+
+
+
