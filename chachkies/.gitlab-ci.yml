@@ -1,9 +1,9 @@
-services:
-  - docker:19.03.7-dind
+image: docker:20.10.6
 
 variables:
   MAVEN_CLI_OPTS: "--batch-mode"
   MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+  DOCKER_TLS_CERTDIR: ""
 
 cache:
   paths:
@@ -47,7 +47,7 @@ test:
 docker build:
   tags:
     - "local"
-  image: docker:19-dind
+  image: docker:20.10.6-dind
   stage: build and push docker image
   # before_script:
     # - source .${CI_COMMIT_REF_NAME}.env
